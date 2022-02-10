@@ -21,6 +21,7 @@
   "dependencies": {
     "@logseq/libs": "^0.0.1-alpha.34",
     "autoprefix": "^1.0.1",
+    "dayjs": "^1.10.7",
     "logseq-dateutils": "^0.0.12",
     "postcss-cli": "^9.1.0",
     "postcss-import": "^14.0.2",

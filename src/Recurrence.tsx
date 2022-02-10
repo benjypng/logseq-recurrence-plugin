@@ -2,14 +2,17 @@ import React, { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { getDateForPageWithoutBrackets } from 'logseq-dateutils';
+import dayjs from 'dayjs';
 import { BlockEntity } from '@logseq/libs/dist/LSPlugin.user';
 
 const Recurrence = () => {
   const [content, setContent] = useState('');
+  const [contentUUID, setContentUUID] = useState('');
 
   const getCurrentBlock = async () => {
     const currBlock: BlockEntity = await logseq.Editor.getCurrentBlock();
     setContent(currBlock.content);
+    setContentUUID(currBlock.uuid);
   };
 
   useEffect(() => {
@@ -24,12 +27,6 @@ const Recurrence = () => {
       endBy: Date,
     },
   });
-
-  const addDays = (date: Date, days: number) => {
-    const result = new Date(date);
-    result.setDate(result.getDate() + days);
-    return result;
-  };
 
   const handleForm = (e: any) => {
     if (!e.type) {
@@ -71,67 +68,92 @@ const Recurrence = () => {
     const { recurrencePattern, recurrenceType, options } = recurrenceValues;
     const { preferredDateFormat } = logseq.settings;
     const d = new Date();
-
-    console.log(recurrenceType);
-    console.log(recurrencePattern);
+    let dates = [];
+    let settingsToBeSaved = {
+      item: content,
+      dateAdded: d,
+      uuids: [contentUUID],
+    };
 
     // Create blocks
     if (recurrenceType === 'occurrences') {
-      if (recurrencePattern === 'daily') {
-        let dates = [];
-        for (let i = 0; i < parseInt(options.endAfter); i++) {
+      for (let i = 0; i < parseInt(options.endAfter); i++) {
+        if (recurrencePattern === 'daily') {
           const payload = getDateForPageWithoutBrackets(
-            addDays(d, i),
+            dayjs().add(i, 'day').toDate(),
+            preferredDateFormat
+          );
+          dates.push(payload.toLowerCase());
+        } else if (recurrencePattern === 'weekly') {
+          const payload = getDateForPageWithoutBrackets(
+            dayjs().add(i, 'week').toDate(),
+            preferredDateFormat
+          );
+          dates.push(payload.toLowerCase());
+        } else if (recurrencePattern === 'monthly') {
+          const payload = getDateForPageWithoutBrackets(
+            dayjs().add(i, 'month').toDate(),
+            preferredDateFormat
+          );
+          dates.push(payload.toLowerCase());
+        } else if (recurrencePattern === 'yearly') {
+          const payload = getDateForPageWithoutBrackets(
+            dayjs().add(i, 'year').toDate(),
             preferredDateFormat
           );
           dates.push(payload.toLowerCase());
         }
-
-        for (let j = 1; j < dates.length; j++) {
-          const getPage = await logseq.Editor.getPage(dates[j]);
-          console.log(getPage);
-
-          if (getPage === null) {
-            await logseq.Editor.createPage(dates[j], '', {
-              redirect: false,
-              createFirstBlock: false,
-              format: 'markdown',
-            });
-          }
-          await logseq.Editor.insertBlock(dates[j], content, {
-            isPageBlock: true,
-          });
-        }
-
-        setRecurrenceValues({
-          recurrencePattern: '',
-          recurrenceType: '',
-          options: {
-            endAfter: '',
-            endBy: Date,
-          },
-        });
-
-        logseq.App.showMsg('Blocks added successfully!');
-
-        logseq.hideMainUI();
       }
     } else if (recurrenceType === 'date') {
     }
 
-    // Save recurrence
-    // const recurrences: any[] = logseq.settings.recurrences;
-    // const payload = {
-    //   recurrencePattern: recurrencePattern,
-    //   recurrenceType: recurrenceType,
-    //   recurrenceOption: options.endAfter ? options.endAfter : options.endBy,
-    // };
+    for (let j = 1; j < dates.length; j++) {
+      const getPage = await logseq.Editor.getPage(dates[j]);
 
-    // recurrences.push(payload);
+      if (getPage === null) {
+        await logseq.Editor.createPage(dates[j], '', {
+          redirect: false,
+          createFirstBlock: false,
+          format: 'markdown',
+        });
+      }
+
+      const itemBlock = await logseq.Editor.insertBlock(dates[j], content, {
+        isPageBlock: true,
+      });
+
+      settingsToBeSaved.uuids.push(itemBlock.uuid);
+    }
+
+    setRecurrenceValues({
+      recurrencePattern: '',
+      recurrenceType: '',
+      options: {
+        endAfter: '',
+        endBy: Date,
+      },
+    });
+
+    logseq.App.showMsg('Blocks added successfully!');
+
+    logseq.hideMainUI();
+
+    if (
+      !logseq.settings.recurrences ||
+      logseq.settings.recurrences.length === 0
+    ) {
+      console.log('Updating settings for the first time...');
+      logseq.updateSettings({ recurrences: [settingsToBeSaved] });
+      console.log(logseq.settings);
+    } else {
+      console.log('Updating settings...');
+      logseq.updateSettings({ recurrences: [settingsToBeSaved] });
+      console.log(logseq.settings);
+    }
   };
 
   return (
-    <div className="flex justify-center border border-black" tabIndex={-1}>
+    <div className="flex justify-center bordermborder-black" tabIndex={-1}>
       <div className=" absolute top-10 bg-white rounded-lg p-3 w-1/3 border">
         <div className="mb-6 text-blue-800 font-extrabold text-xl">
           {content}
