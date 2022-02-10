@@ -65,6 +65,7 @@ const Recurrence = () => {
   };
 
   const createBlocks = async () => {
+    // Get basic settings
     const { recurrencePattern, recurrenceType, options } = recurrenceValues;
     const { preferredDateFormat } = logseq.settings;
     const d = new Date();
@@ -107,6 +108,7 @@ const Recurrence = () => {
     } else if (recurrenceType === 'date') {
     }
 
+    // Add blocks to the designated pages
     for (let j = 1; j < dates.length; j++) {
       const getPage = await logseq.Editor.getPage(dates[j]);
 
@@ -125,6 +127,7 @@ const Recurrence = () => {
       settingsToBeSaved.uuids.push(itemBlock.uuid);
     }
 
+    // Clear forms
     setRecurrenceValues({
       recurrencePattern: '',
       recurrenceType: '',
@@ -138,6 +141,7 @@ const Recurrence = () => {
 
     logseq.hideMainUI();
 
+    // Save recurrences to settings so can delete them
     if (
       !logseq.settings.recurrences ||
       logseq.settings.recurrences.length === 0
