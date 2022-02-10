@@ -4,10 +4,12 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { getDateForPageWithoutBrackets } from 'logseq-dateutils';
 import dayjs from 'dayjs';
 import { BlockEntity } from '@logseq/libs/dist/LSPlugin.user';
+import RecurCard from './RecurCard';
 
 const Recurrence = () => {
   const [content, setContent] = useState('');
   const [contentUUID, setContentUUID] = useState('');
+  const [savedRecurrences, setSavedRecurrences] = useState([]);
 
   const getCurrentBlock = async () => {
     const currBlock: BlockEntity = await logseq.Editor.getCurrentBlock();
@@ -15,8 +17,13 @@ const Recurrence = () => {
     setContentUUID(currBlock.uuid);
   };
 
+  const getSavedRecurrences = () => {
+    setSavedRecurrences(logseq.settings.recurrences);
+  };
+
   useEffect(() => {
     getCurrentBlock();
+    getSavedRecurrences();
   });
 
   const [recurrenceValues, setRecurrenceValues] = useState({
@@ -72,7 +79,7 @@ const Recurrence = () => {
     let dates = [];
     let settingsToBeSaved = {
       item: content,
-      dateAdded: d,
+      dateAdded: dayjs(d).unix(),
       uuids: [contentUUID],
     };
 
@@ -148,10 +155,12 @@ const Recurrence = () => {
     ) {
       console.log('Updating settings for the first time...');
       logseq.updateSettings({ recurrences: [settingsToBeSaved] });
+      getSavedRecurrences();
       console.log(logseq.settings);
     } else {
       console.log('Updating settings...');
       logseq.updateSettings({ recurrences: [settingsToBeSaved] });
+      getSavedRecurrences();
       console.log(logseq.settings);
     }
   };
@@ -266,21 +275,21 @@ const Recurrence = () => {
         </div>
 
         <div className="mb-3">
-          <p className="text-lg">Saved Recurrences</p>
+          {savedRecurrences.length > 0 && (
+            <p className="text-lg">Saved Recurrences</p>
+          )}
         </div>
-        <div className="flex flex-row justify-between items-center">
-          <div className="items-center">
-            <p className="">Recurrence 1, Daily, End by 23/5/2022</p>
-          </div>
-          <div>
-            <button
-              className="shadow bg-red-500 hover:bg-red-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
-              type="button"
-            >
-              Delete
-            </button>
-          </div>
-        </div>
+        {savedRecurrences &&
+          savedRecurrences.map(
+            (r: { uuids: any[]; item: string; dateAdded: string }) => (
+              <RecurCard
+                uuids={r.uuids}
+                item={r.item}
+                id={r.dateAdded}
+                savedRecurrences={savedRecurrences}
+              />
+            )
+          )}
       </div>
     </div>
   );
