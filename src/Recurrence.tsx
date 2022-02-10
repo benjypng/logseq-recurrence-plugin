@@ -9,7 +9,6 @@ import RecurCard from './RecurCard';
 const Recurrence = () => {
   const [content, setContent] = useState('');
   const [contentUUID, setContentUUID] = useState('');
-  const [savedRecurrences, setSavedRecurrences] = useState([]);
 
   const getCurrentBlock = async () => {
     const currBlock: BlockEntity = await logseq.Editor.getCurrentBlock();
@@ -17,13 +16,8 @@ const Recurrence = () => {
     setContentUUID(currBlock.uuid);
   };
 
-  const getSavedRecurrences = () => {
-    setSavedRecurrences(logseq.settings.recurrences);
-  };
-
   useEffect(() => {
     getCurrentBlock();
-    getSavedRecurrences();
   });
 
   const [recurrenceValues, setRecurrenceValues] = useState({
@@ -31,7 +25,7 @@ const Recurrence = () => {
     recurrenceType: '',
     options: {
       endAfter: '',
-      endBy: Date,
+      endBy: '',
     },
   });
 
@@ -66,12 +60,17 @@ const Recurrence = () => {
       recurrenceType: '',
       options: {
         endAfter: '',
-        endBy: Date,
+        endBy: '',
       },
     });
   };
 
   const createBlocks = async () => {
+    if (content === '' || !content) {
+      logseq.App.showMsg('You have no content to recur', 'error');
+      return;
+    }
+
     // Get basic settings
     const { recurrencePattern, recurrenceType, options } = recurrenceValues;
     const { preferredDateFormat } = logseq.settings;
@@ -85,6 +84,14 @@ const Recurrence = () => {
 
     // Create blocks
     if (recurrenceType === 'occurrences') {
+      if (parseInt(options.endAfter) < 1) {
+        logseq.App.showMsg(
+          'You have indicated a negative or zero occurence.',
+          'error'
+        );
+        return;
+      }
+
       for (let i = 0; i < parseInt(options.endAfter); i++) {
         if (recurrencePattern === 'daily') {
           const payload = getDateForPageWithoutBrackets(
@@ -113,6 +120,51 @@ const Recurrence = () => {
         }
       }
     } else if (recurrenceType === 'date') {
+      const pushPayload = (d: Date) => {
+        const payload = getDateForPageWithoutBrackets(d, preferredDateFormat);
+        dates.push(payload.toLowerCase());
+      };
+      const endByDate = dayjs(new Date(options.endBy)).add(1, 'day').toDate();
+
+      let i = 0;
+      while (true) {
+        if (recurrencePattern === 'daily') {
+          const d = dayjs().add(i, 'day').toDate();
+
+          if (d <= endByDate) {
+            pushPayload(d);
+          } else {
+            break;
+          }
+        } else if (recurrencePattern === 'weekly') {
+          const d = dayjs().add(i, 'week').toDate();
+          console.log(d);
+          console.log(options.endBy);
+
+          if (d <= endByDate) {
+            pushPayload(d);
+          } else {
+            break;
+          }
+        } else if (recurrencePattern === 'monthly') {
+          const d = dayjs().add(i, 'month').toDate();
+
+          if (d <= endByDate) {
+            pushPayload(d);
+          } else {
+            break;
+          }
+        } else if (recurrencePattern === 'yearly') {
+          const d = dayjs().add(i, 'year').toDate();
+
+          if (d <= endByDate) {
+            pushPayload(d);
+          } else {
+            break;
+          }
+        }
+        i++;
+      }
     }
 
     // Add blocks to the designated pages
@@ -135,14 +187,7 @@ const Recurrence = () => {
     }
 
     // Clear forms
-    setRecurrenceValues({
-      recurrencePattern: '',
-      recurrenceType: '',
-      options: {
-        endAfter: '',
-        endBy: Date,
-      },
-    });
+    resetForm();
 
     logseq.App.showMsg('Blocks added successfully!');
 
@@ -155,19 +200,17 @@ const Recurrence = () => {
     ) {
       console.log('Updating settings for the first time...');
       logseq.updateSettings({ recurrences: [settingsToBeSaved] });
-      getSavedRecurrences();
       console.log(logseq.settings);
     } else {
       console.log('Updating settings...');
       logseq.updateSettings({ recurrences: [settingsToBeSaved] });
-      getSavedRecurrences();
       console.log(logseq.settings);
     }
   };
 
   return (
     <div className="flex justify-center bordermborder-black" tabIndex={-1}>
-      <div className=" absolute top-10 bg-white rounded-lg p-3 w-1/3 border">
+      <div className=" absolute top-10 bg-white rounded-lg p-3 w-2/3 border">
         <div className="mb-6 text-blue-800 font-extrabold text-xl">
           {content}
         </div>
@@ -227,6 +270,7 @@ const Recurrence = () => {
                 id="inline-full-name"
                 type="number"
                 placeholder="e.g. 10"
+                min="1"
                 name="options.endAfter"
                 onChange={handleForm}
                 value={recurrenceValues.options.endAfter}
@@ -275,19 +319,14 @@ const Recurrence = () => {
         </div>
 
         <div className="mb-3">
-          {savedRecurrences.length > 0 && (
-            <p className="text-lg">Saved Recurrences</p>
+          {logseq.settings.recurrences.length > 0 && (
+            <p className="text-lg font-bold underline">Saved Recurrences</p>
           )}
         </div>
-        {savedRecurrences &&
-          savedRecurrences.map(
+        {logseq.settings.recurrences &&
+          logseq.settings.recurrences.map(
             (r: { uuids: any[]; item: string; dateAdded: string }) => (
-              <RecurCard
-                uuids={r.uuids}
-                item={r.item}
-                id={r.dateAdded}
-                savedRecurrences={savedRecurrences}
-              />
+              <RecurCard uuids={r.uuids} item={r.item} id={r.dateAdded} />
             )
           )}
       </div>

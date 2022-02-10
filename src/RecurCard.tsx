@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const RecurCard = (props) => {
+const RecurCard = (props: { uuids: any[]; id: string; item: string }) => {
   const [uuids] = useState(props.uuids);
 
   const deleteBlocks = async () => {
