@@ -1,4 +1,5 @@
 import '@logseq/libs';
+import './App.css';
 import { handleClosePopup } from './handleClosePopup';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -20,23 +21,15 @@ const main = () => {
     }
   }, 3000);
 
-  logseq.Editor.registerSlashCommand('Recurrence', async () => {
-    const content = await logseq.Editor.getEditingBlockContent();
-
+  logseq.Editor.registerSlashCommand('Set Recurrence', async () => {
     ReactDOM.render(
       <React.StrictMode>
-        <Recurrence content={content} />
+        <Recurrence />
       </React.StrictMode>,
       document.getElementById('app')
     );
 
     logseq.showMainUI();
-
-    document.addEventListener('keydown', (e: any) => {
-      if (e.keyCode !== 27) {
-        (document.querySelector('.search-field') as HTMLElement).focus();
-      }
-    });
   });
 
   handleClosePopup();
