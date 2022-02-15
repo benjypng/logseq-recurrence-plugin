@@ -1,4 +1,4 @@
-If you like my work, you can [support me here](https://github.com/sponsors/hkgnp)!
+[:heart: Sponsor this project on Github](https://github.com/sponsors/hkgnp)
 
 # Overview
 
