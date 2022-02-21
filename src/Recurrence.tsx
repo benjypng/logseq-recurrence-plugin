@@ -3,22 +3,25 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { getDateForPageWithoutBrackets } from 'logseq-dateutils';
 import dayjs from 'dayjs';
-import { BlockEntity } from '@logseq/libs/dist/LSPlugin.user';
+import { BlockEntity, PageEntity } from '@logseq/libs/dist/LSPlugin.user';
 import RecurCard from './RecurCard';
 
 const Recurrence = () => {
   const [content, setContent] = useState('');
   const [contentUUID, setContentUUID] = useState('');
+  const [journalDay, setJournalDay] = useState('');
 
   const getCurrentBlock = async () => {
     const currBlock: BlockEntity = await logseq.Editor.getCurrentBlock();
+    const currPage: PageEntity = await logseq.Editor.getPage(currBlock.page.id);
+    setJournalDay(currPage.journalDay.toString());
     setContent(currBlock.content);
     setContentUUID(currBlock.uuid);
   };
 
   useEffect(() => {
     getCurrentBlock();
-  }, []);
+  });
 
   const [recurrenceValues, setRecurrenceValues] = useState({
     recurrencePattern: '',
@@ -74,6 +77,7 @@ const Recurrence = () => {
     // Get basic settings
     const { recurrencePattern, recurrenceType, options } = recurrenceValues;
     const { preferredDateFormat } = logseq.settings;
+
     const d = new Date();
     let dates = [];
     let settingsToBeSaved = {
@@ -95,25 +99,25 @@ const Recurrence = () => {
       for (let i = 0; i < parseInt(options.endAfter); i++) {
         if (recurrencePattern === 'daily') {
           const payload = getDateForPageWithoutBrackets(
-            dayjs().add(i, 'day').toDate(),
+            dayjs(journalDay).add(i, 'day').toDate(),
             preferredDateFormat
           );
           dates.push(payload.toLowerCase());
         } else if (recurrencePattern === 'weekly') {
           const payload = getDateForPageWithoutBrackets(
-            dayjs().add(i, 'week').toDate(),
+            dayjs(journalDay).add(i, 'week').toDate(),
             preferredDateFormat
           );
           dates.push(payload.toLowerCase());
         } else if (recurrencePattern === 'monthly') {
           const payload = getDateForPageWithoutBrackets(
-            dayjs().add(i, 'month').toDate(),
+            dayjs(journalDay).add(i, 'month').toDate(),
             preferredDateFormat
           );
           dates.push(payload.toLowerCase());
         } else if (recurrencePattern === 'yearly') {
           const payload = getDateForPageWithoutBrackets(
-            dayjs().add(i, 'year').toDate(),
+            dayjs(journalDay).add(i, 'year').toDate(),
             preferredDateFormat
           );
           dates.push(payload.toLowerCase());
@@ -129,7 +133,7 @@ const Recurrence = () => {
       let i = 0;
       while (true) {
         if (recurrencePattern === 'daily') {
-          const d = dayjs().add(i, 'day').toDate();
+          const d = dayjs(journalDay).add(i, 'day').toDate();
 
           if (d <= endByDate) {
             pushPayload(d);
@@ -137,9 +141,7 @@ const Recurrence = () => {
             break;
           }
         } else if (recurrencePattern === 'weekly') {
-          const d = dayjs().add(i, 'week').toDate();
-          console.log(d);
-          console.log(options.endBy);
+          const d = dayjs(journalDay).add(i, 'week').toDate();
 
           if (d <= endByDate) {
             pushPayload(d);
@@ -147,7 +149,7 @@ const Recurrence = () => {
             break;
           }
         } else if (recurrencePattern === 'monthly') {
-          const d = dayjs().add(i, 'month').toDate();
+          const d = dayjs(journalDay).add(i, 'month').toDate();
 
           if (d <= endByDate) {
             pushPayload(d);
@@ -155,7 +157,7 @@ const Recurrence = () => {
             break;
           }
         } else if (recurrencePattern === 'yearly') {
-          const d = dayjs().add(i, 'year').toDate();
+          const d = dayjs(journalDay).add(i, 'year').toDate();
 
           if (d <= endByDate) {
             pushPayload(d);
