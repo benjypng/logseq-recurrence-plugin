@@ -15,6 +15,12 @@ const main = () => {
     console.log(`Settings updated to ${preferredDateFormat}`);
   }, 3000);
 
+  if (!logseq.settings.recurrences) {
+    logseq.updateSettings({
+      recurrences: [],
+    });
+  }
+
   logseq.Editor.registerSlashCommand('Set Recurrence', async () => {
     ReactDOM.render(
       <React.StrictMode>
