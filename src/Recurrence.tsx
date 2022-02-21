@@ -18,7 +18,7 @@ const Recurrence = () => {
 
   useEffect(() => {
     getCurrentBlock();
-  });
+  }, []);
 
   const [recurrenceValues, setRecurrenceValues] = useState({
     recurrencePattern: '',
