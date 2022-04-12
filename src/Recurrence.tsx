@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import { getDateForPageWithoutBrackets } from 'logseq-dateutils';
-import dayjs from 'dayjs';
-import { BlockEntity, PageEntity } from '@logseq/libs/dist/LSPlugin.user';
-import RecurCard from './RecurCard';
+import React, { useState, useEffect } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { getDateForPageWithoutBrackets } from "logseq-dateutils";
+import dayjs from "dayjs";
+import { BlockEntity, PageEntity } from "@logseq/libs/dist/LSPlugin.user";
+import RecurCard from "./RecurCard";
 
 const Recurrence = () => {
-  const [content, setContent] = useState('');
-  const [contentUUID, setContentUUID] = useState('');
-  const [journalDay, setJournalDay] = useState('');
+  const [content, setContent] = useState("");
+  const [contentUUID, setContentUUID] = useState("");
+  const [journalDay, setJournalDay] = useState("");
 
   const getCurrentBlock = async () => {
     const currBlock: BlockEntity = await logseq.Editor.getCurrentBlock();
@@ -24,11 +24,11 @@ const Recurrence = () => {
   });
 
   const [recurrenceValues, setRecurrenceValues] = useState({
-    recurrencePattern: '',
-    recurrenceType: '',
+    recurrencePattern: "",
+    recurrenceType: "",
     options: {
-      endAfter: '',
-      endBy: '',
+      endAfter: "",
+      endBy: "",
     },
   });
 
@@ -37,16 +37,16 @@ const Recurrence = () => {
       setRecurrenceValues((prevValues) => ({
         ...prevValues,
         options: {
-          endAfter: '',
+          endAfter: "",
           endBy: e,
         },
       }));
     } else {
-      const name = e.target.name.split('.');
+      const name = e.target.name.split(".");
       if (name.length > 1) {
         setRecurrenceValues((prevValues) => ({
           ...prevValues,
-          [name[0]]: { [name[1]]: e.target.value, endBy: '' },
+          [name[0]]: { [name[1]]: e.target.value, endBy: "" },
         }));
       } else {
         setRecurrenceValues((prevValues) => ({
@@ -59,18 +59,18 @@ const Recurrence = () => {
 
   const resetForm = () => {
     setRecurrenceValues({
-      recurrencePattern: '',
-      recurrenceType: '',
+      recurrencePattern: "",
+      recurrenceType: "",
       options: {
-        endAfter: '',
-        endBy: '',
+        endAfter: "",
+        endBy: "",
       },
     });
   };
 
   const createBlocks = async () => {
-    if (content === '' || !content) {
-      logseq.App.showMsg('You have no content to recur', 'error');
+    if (content === "" || !content) {
+      logseq.App.showMsg("You have no content to recur", "error");
       return;
     }
 
@@ -87,77 +87,77 @@ const Recurrence = () => {
     };
 
     // Create blocks
-    if (recurrenceType === 'occurrences') {
+    if (recurrenceType === "occurrences") {
       if (parseInt(options.endAfter) < 1) {
         logseq.App.showMsg(
-          'You have indicated a negative or zero occurence.',
-          'error'
+          "You have indicated a negative or zero occurence.",
+          "error"
         );
         return;
       }
 
       for (let i = 0; i < parseInt(options.endAfter); i++) {
-        if (recurrencePattern === 'daily') {
+        if (recurrencePattern === "daily") {
           const payload = getDateForPageWithoutBrackets(
-            dayjs(journalDay).add(i, 'day').toDate(),
+            dayjs(journalDay).add(i, "day").toDate(),
             preferredDateFormat
           );
           dates.push(payload.toLowerCase());
-        } else if (recurrencePattern === 'weekly') {
+        } else if (recurrencePattern === "weekly") {
           const payload = getDateForPageWithoutBrackets(
-            dayjs(journalDay).add(i, 'week').toDate(),
+            dayjs(journalDay).add(i, "week").toDate(),
             preferredDateFormat
           );
           dates.push(payload.toLowerCase());
-        } else if (recurrencePattern === 'monthly') {
+        } else if (recurrencePattern === "monthly") {
           const payload = getDateForPageWithoutBrackets(
-            dayjs(journalDay).add(i, 'month').toDate(),
+            dayjs(journalDay).add(i, "month").toDate(),
             preferredDateFormat
           );
           dates.push(payload.toLowerCase());
-        } else if (recurrencePattern === 'yearly') {
+        } else if (recurrencePattern === "yearly") {
           const payload = getDateForPageWithoutBrackets(
-            dayjs(journalDay).add(i, 'year').toDate(),
+            dayjs(journalDay).add(i, "year").toDate(),
             preferredDateFormat
           );
           dates.push(payload.toLowerCase());
         }
       }
-    } else if (recurrenceType === 'date') {
+    } else if (recurrenceType === "date") {
       const pushPayload = (d: Date) => {
         const payload = getDateForPageWithoutBrackets(d, preferredDateFormat);
         dates.push(payload.toLowerCase());
       };
-      const endByDate = dayjs(new Date(options.endBy)).add(1, 'day').toDate();
+      const endByDate = dayjs(new Date(options.endBy)).add(1, "day").toDate();
 
       let i = 0;
       while (true) {
-        if (recurrencePattern === 'daily') {
-          const d = dayjs(journalDay).add(i, 'day').toDate();
+        if (recurrencePattern === "daily") {
+          const d = dayjs(journalDay).add(i, "day").toDate();
 
           if (d <= endByDate) {
             pushPayload(d);
           } else {
             break;
           }
-        } else if (recurrencePattern === 'weekly') {
-          const d = dayjs(journalDay).add(i, 'week').toDate();
+        } else if (recurrencePattern === "weekly") {
+          const d = dayjs(journalDay).add(i, "week").toDate();
 
           if (d <= endByDate) {
             pushPayload(d);
           } else {
             break;
           }
-        } else if (recurrencePattern === 'monthly') {
-          const d = dayjs(journalDay).add(i, 'month').toDate();
+        } else if (recurrencePattern === "monthly") {
+          const d = dayjs(journalDay).add(i, "month").toDate();
 
           if (d <= endByDate) {
             pushPayload(d);
           } else {
             break;
           }
-        } else if (recurrencePattern === 'yearly') {
-          const d = dayjs(journalDay).add(i, 'year').toDate();
+        } else if (recurrencePattern === "yearly") {
+          const d = dayjs(journalDay).add(i, "year").toDate();
 
           if (d <= endByDate) {
             pushPayload(d);
@@ -174,10 +174,10 @@ const Recurrence = () => {
       const getPage = await logseq.Editor.getPage(dates[j]);
 
       if (getPage === null) {
-        await logseq.Editor.createPage(dates[j], '', {
+        await logseq.Editor.createPage(dates[j], "", {
           redirect: false,
           createFirstBlock: false,
-          format: 'markdown',
+          format: "markdown",
         });
       }
 
@@ -191,7 +191,7 @@ const Recurrence = () => {
     // Clear forms
     resetForm();
 
-    logseq.App.showMsg('Blocks added successfully!');
+    logseq.App.showMsg("Blocks added successfully!");
 
     logseq.hideMainUI();
 
@@ -200,12 +200,16 @@ const Recurrence = () => {
       !logseq.settings.recurrences ||
       logseq.settings.recurrences.length === 0
     ) {
-      console.log('Updating settings for the first time...');
+      console.log("Updating settings for the first time...");
       logseq.updateSettings({ recurrences: [settingsToBeSaved] });
       console.log(logseq.settings);
     } else {
-      console.log('Updating settings...');
-      logseq.updateSettings({ recurrences: [settingsToBeSaved] });
+      console.log("Updating settings...");
+      let existingSettings: any[] = logseq.settings.recurrences;
+      existingSettings.push(settingsToBeSaved);
+      logseq.updateSettings({
+        recurrences: existingSettings,
+      });
       console.log(logseq.settings);
     }
   };
@@ -259,7 +263,7 @@ const Recurrence = () => {
           </div>
         </div>
 
-        {recurrenceValues.recurrenceType === 'occurrences' && (
+        {recurrenceValues.recurrenceType === "occurrences" && (
           <div className="md:flex mb-6">
             <div className="md:w-1/6">
               <label className="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">
@@ -276,13 +280,13 @@ const Recurrence = () => {
                 name="options.endAfter"
                 onChange={handleForm}
                 value={recurrenceValues.options.endAfter}
-              />{' '}
+              />{" "}
               occurences
             </div>
           </div>
         )}
 
-        {recurrenceValues.recurrenceType === 'date' && (
+        {recurrenceValues.recurrenceType === "date" && (
           <div className="md:flex mb-6">
             <div className="md:w-1/6">
               <label className="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">
