@@ -1,18 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 const RecurCard = (props: { uuids: any[]; id: string; item: string }) => {
   const [uuids] = useState(props.uuids);
+  const [settings, setSettings] = useState(logseq.settings);
 
   const deleteBlocks = async () => {
+    // delete all blocks
     for (let u of uuids) {
       await logseq.Editor.removeBlock(u);
     }
-    let clone = [...logseq.settings.recurrences];
-    clone = clone.filter((i) => i.dateAdded !== props.id);
-    logseq.updateSettings({ recurrences: '' });
-    logseq.updateSettings({ recurrences: clone });
+
+    // delete entry from settings by matching the id from props and the dateAdded from settings
+    const recurrencesClone: any[] = settings.recurrences;
+    recurrencesClone.splice(
+      recurrencesClone.findIndex((i) => i.dateAdded === props.id),
+      1
+    );
+    setSettings((prevSettings) => ({
+      ...prevSettings,
+      recurrences: recurrencesClone,
+    }));
     logseq.hideMainUI();
-    logseq.App.showMsg('Blocks deleted successfully!');
+    logseq.App.showMsg("Blocks deleted successfully!");
   };
 
   return (

@@ -28,7 +28,7 @@ const Recurrence = () => {
     recurrenceType: "",
     options: {
       endAfter: "",
-      endBy: "",
+      endBy: null,
     },
   });
 
